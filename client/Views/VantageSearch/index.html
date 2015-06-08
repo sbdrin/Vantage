@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <link type="text/css" rel="Stylesheet" href="../../css/jqx.base.css" />
+    <link type="text/css" rel="Stylesheet" href="../../css/smoothness.css" />
+    <link type="text/css" rel="Stylesheet" href="../../css/VantageSearch_min.css" />
+</head>
+<body style="height:510px;">
+    <input type="hidden" id="dataForLayout" value="<%= ViewBag.layouts %>" />
+    <div id="VantageSearch_divMain" style="float: left; width: 100%; overflow: hidden;
+        min-height: 500px;">
+        <!-- Vantage Search Main Container -->
+        <!-- Vantage Search Filter -->
+        <div class="div_filter_panel" style="width: 100%; height: 36px; display: inline-block;
+            border-bottom: solid 2px #909090; padding: 0 2px;">
+            <div class="filter_item" style="padding-top: 6px;">
+                <div id="VantageSearch_quickSearch" class="search_div">
+                </div>
+            </div>
+            <div style="border-color: transparent; position: absolute; z-index: 1040; border: 1px solid #888;
+                top: 62px; visibility: hidden;" id="filter_item_search_input_grid">
+            </div>
+            <div class="filter_item" style="padding-top: 6px; display: none;">
+                <input id="filter_item_time_period" class="jqx-icon-arrow-down" style="background-color: #eee;
+                    width: 165px; background-position: right center; border: 1px solid #ccc; line-height: 19px;
+                    height: 19px; padding-left: 4px;" readonly />
+            </div>
+            <div class="filter_item" style="padding-top: 6px;">
+                <button class="btn" style="height: 23px; border-right-width: 0;" title="Search" id="filter_item_submit">
+                    <span class="divSearchbtn"></span>
+                </button>
+            </div>
+            <div class="filter_item">
+                <button class="submit btn" type="button" id="filter_item_advanced_search" onclick="javascript:CV_CREDIT.VantageSearch.openAdvancedSearchPopup();">
+                    ADVANCED SEARCH</button>
+            </div>
+            <div class="filter_item">
+                <button class="submit btn" type="button" id="filter_item_advanced_reset" onclick="javascript:CV_CREDIT.VantageSearch.reset();">
+                    RESET</button>
+            </div>
+            <div id="VantageSearch_Switch_User" class="filter_item" style="display: none;">
+                <button class="submit btn" type="button" id="filter_item_Switch_User" onclick="javascript:CV_CREDIT.VantageSearch.openSwitchUserPopup();">
+                    SWITCH USER</button>
+            </div>
+            <div id="VantageSearch_divExportToExcel" class="exportexcel" style="float: right;"
+                onclick="CV_CREDIT.VantageSearch.exportToExcel()" title="Export Data Table">
+            </div>
+            <div id="columnLayout" class="filter_item columnLayout" style="position: relative;
+                float: right; display: inline-block;">
+                <div style="cursor: pointer;">
+                    <span id="columnLayoutBtn" class="layoutsetting"></span>
+                </div>
+                <ul class="dropdown-menu pull-left">
+                    <li class="divider"></li>
+                    <li><a data-action="addOrRemoveColumn"><span class="iconcolumn"></span>Add/Remove Columns</a></li>
+                    <li><a data-action="saveLayout"><span class="iconsave"></span>Save Layout</a></li>
+                    <li><a data-action="deleteLayout"><span class="icondelete"></span>Delete Layout</a></li>
+                    <li><a data-action="resetLayout"><span class="iconreset"></span>Reset Layout</a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- End Vantage Search Filter -->
+        <div id="VantageSearch_divMainContainer">
+            <div id="VantageSearch_Tabs" style="display: none;padding-left:0;">
+                <ul>
+                    <li><a id="VantageSearch_Tabs_Axes">AXE</a></li>
+                    <li><a id="VantageSearch_Tabs_Inventory">Inventory</a></li>
+                    <li><a id="VantageSearch_Tabs_BondTrades">Trading Activity</a></li>
+                    <li><a id="VantageSearch_Tabs_RFQ">RFQ</a></li>
+                    <li><a id="VantageSearch_Tabs_Inquiry">Inquiry</a></li>
+                    <div style="text-align: right;line-height:24px;font-size:10px;margin-right:5px;">*Data displayed by default is for past 6 months. To change time period use Advanced Search.</div>
+                </ul>
+                
+                <div id="VantageSearch_Tabs_Axes_Container" class="tab_container" data-action="AxesDataTable">
+                    <div id="VantageSearch_Tabs_Axes_Banner" class="Banner">
+                        <div class="bg_banner_left" style="width: 0;">
+                              <div class="collape expanded">
+                             </div>
+                            <div class="bg_banner_right">
+                                <div class="bg_banner_center">
+                                    ** Citi is axed to buy or sell the following {0} that {1} your search criteria
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="VantageSearch_Tabs_Axes_DataTable">
+                     
+                    </div>
+                </div>
+                <div id="VantageSearch_Tabs_Inventory_Container" class="tab_container" data-action="InventoryDataTable">
+                    <div id="VantageSearch_Tabs_Inventory_Banner" class="Banner">
+                        <div class="bg_banner_left" style="width: 1142px;">
+                              <div class="collape expanded">
+                             </div>
+                            <div class="bg_banner_right">
+                                <div class="bg_banner_center">
+                                    ** Citi has either a long or short position on the following {0} that {1} your search criteria
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="VantageSearch_Tabs_Inventory_DataTable">
+                    </div>
+                </div>
+                <div id="VantageSearch_Tabs_BondTrades_Container" class="tab_container" data-action="BondTradesDataTable">
+                     <div id="VantageSearch_Tabs_BondTrades_Banner" class="Banner">
+                        <div class="bg_banner_left" style="width: 1142px;">
+                              <div class="collape expanded">
+                             </div>
+                            <div class="bg_banner_right">
+                                <div class="bg_banner_center">
+                                    ** {2}, Citi has traded the following {0} that {1} your search criteria
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="VantageSearch_Tabs_BondTrades_DataTable">
+                    </div>
+                </div>
+                <div id="VantageSearch_Tabs_RFQ_Container" class="tab_container" data-action="RFQDataTable">
+                     <div id="VantageSearch_Tabs_RFQ_Banner" class="Banner">
+                        <div class="bg_banner_left" style="width: 1142px;">
+                              <div class="collape expanded">
+                             </div>
+                            <div class="bg_banner_right">
+                                <div class="bg_banner_center">
+                                    ** {2}, Citi has received electronic inquiries on the following {0} that {1} your search criteria
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="VantageSearch_Tabs_RFQ_DataTable">
+                    </div>
+                </div>
+                <div id="VantageSearch_Tabs_Inquiry_Container" class="tab_container" data-action="InquiryDataTable">
+                     <div id="VantageSearch_Tabs_Inquiry_Banner" class="Banner">
+                        <div class="bg_banner_left" style="width: 1142px;">
+                              <div class="collape expanded">
+                             </div>
+                            <div class="bg_banner_right">
+                                <div class="bg_banner_center">
+                                    ** {2}, Citi has received orders and inquiries on the following {0} that {1} your search criteria
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="VantageSearch_Tabs_Inquiry_DataTable">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Vantage Search Main Container -->
+        <div id="columnLayoutList" style="display: none;">
+            <div id="filterPopTitle">
+            </div>
+            <div id="filterPopContent" style="overflow: hidden;">
+                <div id="columnLayoutCheckbox">
+                </div>
+            </div>
+        </div>
+        <div id="VantageSearch_Save_Layout_Window" style="display: none; width: 300px;">
+            <div class="popWindowheader">
+                <span>Save Layout </span>
+            </div>
+            <div style="overflow: hidden;" class="popWindowContent">
+                <div style="font-weight: bold; height: 18px; padding: 2px; font-family: Arial; font-size: 12px;
+                    width: 100%;">
+                    You can save your layout.</div>
+                <table cellpadding="0" cellspacing="0" style="height: 12px; padding: 2px; font-family: Arial;
+                    font-size: 11px; width: 100%;">
+                    <tbody>
+                        <tr>
+                            <td style="width: 35px; font-weight: bold;">
+                                Layout:
+                            </td>
+                            <td>
+                                <input id="layout_name" type="text" style="height: 15px; border: 1px solid;" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="height: 12px; padding: 2px; font-family: Arial; font-size: 11px; width: 100%;
+                    color: Red;">
+                    <span id="ErrorInput" style="font-weight: bold; display: none;"></span>
+                </div>
+                <div style="height: 18px; padding: 2px; text-align: center; font-family: Arial; font-size: 13px;
+                    width: 100%;">
+                    <input type="button" id="btnSaveLayout" value="Save" class="popWindowButton" />
+                    <input type="checkbox" id="layoutDefaultCheck" /><span style="font-size: 13px;">Set
+                        as Default</span>
+                </div>
+            </div>
+        </div>
+        <div id="VantageSearch_Delete_Layout_Window" style="display: none;">
+            <div class="popWindowheader">
+                <span>Delete Layouts </span>
+            </div>
+            <div style="overflow: hidden;" class="popWindowContent">
+                <div style="padding: 2px; font-family: Arial; font-size: 12px; width: 100%;">
+                    <table id="tbl_layoutList" border="0">
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="height: 20px; padding: 2px; font-family: Arial; text-align: center; font-size: 11px;
+                    width: 100%;">
+                    <span>
+                        <input type="button" value="Delete" class="popWindowButton" id="btnDeleteLayout" />&nbsp;&nbsp;<input
+                            type="button" value="Cancel" class="popWindowButton" onclick="$('#VantageSearch_Delete_Layout_Window').jqxWindow('close');" /></span>
+                </div>
+            </div>
+        </div>
+        <!-- Message Popup -->
+        <div id="VantageSearch_divMessagePopup" style="display: none;">
+            <div id="VantageSearch_divMessagePopup_Header" style="font-weight: bold; height: 16px;
+                font-size: 13px;">
+                Message
+            </div>
+            <div id="VantageSearch_divMessagePopup_Content" style="overflow: hidden; height: 40px;">
+                <div id="VantageSearch_divMessagePopup_Message" style="font-size: 12px; margin-left:5px;
+                    display: block;">
+                </div>
+                <div style="margin:auto; padding: auto; text-align:center; display: block; margin-top:5px;">
+                    <input id="VantageSearch_divMessagePopup_btnClose" type="button" value="OK" style="
+                        color: #444444; cursor: pointer; font-size: 12px; width: 50px;" />
+                </div>
+            </div>
+        </div>
+        <!-- End Message Popup -->
+        <!-- Switch User Popup -->
+        <div id="VantageSearch_divSwitchUserPopup" style="display: none;">
+            <div id="VantageSearch_divSwitchUserPopup_Header" style="font-weight: bold; height: 16px;
+                font-size: 13px;">
+                Switch User
+            </div>
+            <div id="VantageSearch_divSwitchUserPopup_Content" style="overflow: hidden; height: 40px;">
+                <center>
+                    <div id="VantageSearch_divSwitchUserPopup_Message">
+                        <div>
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            USER_TYPE:
+                                        </td>
+                                        <td>
+                                            <input id="switchuser_USER_TYPE" type="text" style="width: 80px !important;" maxlength="20" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            LOGIN_ID:
+                                        </td>
+                                        <td>
+                                            <input id="switchuser_LOGIN_ID" type="text" style="width: 80px !important;" maxlength="20" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            GP_NUM:
+                                        </td>
+                                        <td>
+                                            <input id="switchuser_GP_NUM" type="text" style="width: 80px !important;" maxlength="5" />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </center>
+                <center>
+                    <div id="filter_searchButtons" class="searchButtons">
+                        <input type="button" id="VantageSearch_divSwitchUserhPopup_btnSubmit" value="Submit" />
+                        <input type="button" id="VantageSearch_divSwitchUserPopup_btnReset" value="Reset" />
+                        <input type="button" id="VantageSearch_divSwitchUserPopup_btnClose" value="Close" />
+                    </div>
+                </center>
+            </div>
+        </div>
+        <!-- End Switch User Popup -->
+    </div>
+    <!-- AdvancedSearch Popup -->
+    <div id="VantageSearch_divAdvancedSearchPopup" style="display: none; overflow: visible;">
+        <div id="VantageSearch_divAdvancedSearchPopup_Header" style="font-weight: bold; height: 16px;
+            font-size: 13px;">
+            Advanced Search
+        </div>
+        <div id="VantageSearch_divAdvancedSearchPopup_Content" style="overflow: hidden; height: 400px;">
+            <center>
+                <div id="filter" class="filterpanel">
+                    <!-- Time Period -->
+                    <div id="filter_panel_time_period">
+                        <div class="content">
+                            <p class="filter_title">
+                                Time Period</p>
+                            <p>
+                                <input id="filter_btn_time_period_Today" type="button" value="Today" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_time_period_2D" type="button" value="2 days" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_time_period_3D" type="button" value="3 days" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_time_period_1W" type="button" value="1 week" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_time_period_2W" type="button" value="2 weeks" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_time_period_1M" type="button" value="1 month" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_time_period_3M" type="button" value="3 months" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_time_period_6M" type="button" value="6 months" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_time_period_12M" type="button" value="12 months" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_time_period_18M" type="button" value="18 months" changestyle /></p>
+                            <br />
+                            <p class="filter_title">
+                                From</p>
+                            <p>
+                                <div id="VantageSearch_filter_divDatepickerSelect_from">
+                                </div>
+                            </p>
+                            <p class="filter_title">
+                                To</p>
+                            <p>
+                                <div id="VantageSearch_filter_divDatepickerSelect_to">
+                                </div>
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Sector -->
+                    <div id="filter_panel_sector">
+                        <div class="content filter_sector">
+                            <p class="filter_title">
+                                Sector</p>
+                            <p>
+                                <input id="filter_btn_sector_BasicMaterials" type="button" value="Basic Materials"
+                                    changestyle /></p>
+                            <p>
+                                <input id="filter_btn_sector_Communications" type="button" value="Communications"
+                                    changestyle /></p>
+                            <p>
+                                <input id="filter_btn_sector_ConCydical" type="button" value="Consumer, Cyclical"
+                                    changestyle /></p>
+                            <p>
+                                <input id="filter_btn_sector_ConNonCyc" type="button" value="Consumer, Non-cyclical"
+                                    changestyle /></p>
+                            <p>
+                                <input id="filter_btn_sector_Diversified" type="button" value="Diversified" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_sector_Energy" type="button" value="Energy" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_sector_Financial" type="button" value="Financial" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_sector_Government" type="button" value="Government" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_sector_Industrial" type="button" value="Industrial" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_sector_Technology" type="button" value="Technology" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_sector_Utilities" type="button" value="Utilities" changestyle /></p>
+                        </div>
+                    </div>
+                    <!-- Markets -->
+                    <div id="filter_panel_markets">
+                        <div class="content">
+                            <!-- Markets -->
+                            <p class="filter_title">
+                                Markets</p>
+                            <p>
+                                <input id="filter_btn_markets_HG" type="button" value="High Grade" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_markets_HY" type="button" value="High Yield" changestyle /></p>
+                            <br />
+                            <!-- Ccy -->
+                            <p class="filter_title">
+                                Ccy</p>
+                            <p>
+                                <input id="filter_btn_ccy_USD" type="button" value="USD" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_ccy_EUR" type="button" value="EUR" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_ccy_GBP" type="button" value="GBP" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_ccy_AUD" type="button" value="AUD" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_ccy_CNH" type="button" value="CNH" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_ccy_JPY" type="button" value="JPY" changestyle /></p>
+                            <br />
+                            <!-- Citi B/S -->
+                            <p class="filter_title">
+                                Citi B/S</p>
+                            <p>
+                                <input id="filter_btn_citiBS_Buy" type="button" value="Buy" changestyle /></p>
+                            <p>
+                                <input id="filter_btn_citiBS_Sell" type="button" value="Sell" changestyle /></p>
+                        </div>
+                    </div>
+                    <!-- Rating -->
+                    <div id="filter_panel_rating">
+                        <div class="content filter_rating">
+                            <p class="filter_title">
+                                Rating</p>
+                            <p>
+                                <input type="button" value="AAA" id="filter_btn_rating_AAA" changestyle data-rating="AAA,Aaa" /></p>
+                            <p>
+                                <input type="button" value="AA" id="filter_btn_rating_AA" changestyle data-rating="AA+,AA,AA-,Aa1,Aa2,Aa3" /></p>
+                            <p>
+                                <input type="button" value="A" id="filter_btn_rating_A" changestyle data-rating="A+,A,A-,A1,A2,A3" /></p>
+                            <p>
+                                <input type="button" value="BBB" id="filter_btn_rating_BBB" changestyle data-rating="BBB+,BBB,BBB-,Baa1,Baa2,Baa3" /></p>
+                            <p>
+                                <input type="button" value="BB" id="filter_btn_rating_BB" changestyle data-rating="BB+,BB,BB-,Ba1,Ba2,Ba3" /></p>
+                            <p>
+                                <input type="button" value="B" id="filter_btn_rating_B" changestyle data-rating="B+,B,B-,B1,B2,B3" /></p>
+                            <p>
+                                <input type="button" value="CCC" id="filter_btn_rating_CCC" changestyle data-rating="CCC+,CCC,CCC-,Caa1,Caa2,Caa3" /></p>
+                            <p>
+                                <input type="button" value="CC" id="filter_btn_rating_CC" changestyle data-rating="CC,Ca" /></p>
+                            <p>
+                                <input type="button" value="C" id="filter_btn_rating_C" changestyle data-rating="C" /></p>
+                            <p>
+                                <input type="button" value="D" id="filter_btn_rating_D" changestyle data-rating="D" /></p>
+                            <p>
+                                <input type="button" value="NR" id="filter_btn_rating_NR" changestyle data-rating="NR,WR" /></p>
+                        </div>
+                    </div>
+                    <!-- Maturity -->
+                    <div id="filter_panel_maturity" style="">
+                        <div class="content filter_maturity">
+                            <p class="filter_title">
+                                Maturity</p>
+                            <div class="tooltip top custom_tip" style="margin-top: -59px; margin-left: -123px;
+                                display: none;">
+                                <div class="tooltip-arrow" style="border-top-color: #ddd;">
+                                </div>
+                                <div class="tooltip-inner" style="width: 340px; background-color: #ddd; color: #000;">
+                                    Maturity certiria may be entered in one of the two ways: 1.Maturity Range(in years).Example:4-7
+                                    <br />
+                                    2.Maturity Years.Example:2014-2020
+                                </div>
+                            </div>
+                            <p id="maturity_filter">
+                                <input id="filter_txt_maturity_min" type="text" style="width: 47px !important; float: left;"
+                                    keypress maxlength="4" />
+                                <b style="font-family: Courier; font-size: 11px;">-</b>
+                                <input id="filter_txt_maturity_max" type="text" style="width: 47px !important;" keypress
+                                    maxlength="4" />
+                            </p>
+                            <p class="filter_title">
+                                Coupon</p>
+                            <p>
+                                <input id="filter_txt_coupon_min" type="text" style="width: 47px !important; float: left;"
+                                    keypress />
+                                <b style="font-family: Courier; font-size: 11px;">-</b>
+                                <input id="filter_txt_coupon_max" type="text" style="width: 47px !important;" keypress />
+                            </p>
+                            <p class="filter_title">
+                                Ticker</p>
+                            <p>
+                                <input id="filter_txt_ticker" type="text" /></p>
+                            <br />
+                            <br />
+                            <br />
+                            <br />
+                            <br />
+                            <p class="filter_title">
+                                CUSIP/ISIN</p>
+                            <p>
+                                <input id="filter_txt_cusip_isin" type="text" /></p>
+                        </div>
+                    </div>
+                    <!-- Client  Sales Person Traders-->
+                    <div id="filter_panel_client" style="display: none;">
+                        <div class="content filter_client">
+                            <p class="filter_title">
+                                Client</p>
+                            <p>
+                                <input id="filter_txt_client" type="text" data-valid="false" class="form-control"
+                                    placeholder="Enter Client" onkeydown="return CV_CREDIT.VantageSearch.doNothing(event);"
+                                    autocomplete="off" />
+                                <div class="tooltip fade bottom">
+                                    <div class="tooltip-arrow">
+                                    </div>
+                                    <div class="tooltip-inner" style="width: 168px; display: none;">
+                                        length must be 12
+                                    </div>
+                                </div>
+                                <div id="filter_txt_clientGrid" style="border-color: transparent; position: absolute;
+                                    z-index: 1040; border: 1px solid #888; visibility: hidden; margin-top: -10px;">
+                                </div>
+                            </p>
+                            <p class="filter_title">
+                                Sales Person</p>
+                            <p>
+                                <input type="text" id="filter_txt_sales_person" data-valid="false" class="form-control"
+                                    placeholder="Enter Sales Person" onkeydown="return CV_CREDIT.VantageSearch.doNothing(event);"
+                                    autocomplete="off" />
+                                <div class="tooltip fade bottom">
+                                    <div class="tooltip-arrow">
+                                    </div>
+                                    <div class="tooltip-inner" style="width: 168px; display: none;">
+                                        length must be 12
+                                    </div>
+                                </div>
+                                <div id="filter_txt_sales_personGrid" style="border-color: transparent; position: absolute;
+                                    z-index: 1040; border: 1px solid #888; visibility: hidden; margin-top: -10px;">
+                                </div>
+                            </p>
+                            <p class="filter_title">
+                                Traders</p>
+                            <p>
+                                <input type="text" id="filter_txt_ticker_traders" data-valid="false" class="form-control"
+                                    placeholder="Enter Traders" onkeydown="return CV_CREDIT.VantageSearch.doNothing(event);"
+                                    autocomplete="off" />
+                                <div class="tooltip fade bottom">
+                                    <div class="tooltip-arrow">
+                                    </div>
+                                    <div class="tooltip-inner" style="width: 168px; display: none;">
+                                        length must be 12
+                                    </div>
+                                </div>
+                                <div id="filter_txt_ticker_tradersGrid" style="border-color: transparent; position: absolute;
+                                    z-index: 1040; border: 1px solid #888; visibility: hidden; margin-top: -10px;">
+                                </div>
+                            </p>
+                            <p>
+                                <div id="filter_txt_ticker_traders_selected" style="overflow: auto; width: 165px;
+                                    height: 150px;">
+                                </div>
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Search Buttons -->
+                    <div id="filter_searchButtons" class="searchButtons">
+                        <input type="button" id="VantageSearch_divAdvancedSearchPopup_btnSearch" value="Search" />
+                        <input type="button" id="VantageSearch_divAdvancedSearchPopup_btnReset" value="Reset" />
+                        <input type="button" id="VantageSearch_divAdvancedSearchPopup_btnClose" value="Close" />
+                    </div>
+                </div>
+            </center>
+        </div>
+    </div>
+    <!-- End AdvancedSearch Popup -->
+    <!-- Start first show Message -->
+    <div id="externalUserMsg" style="white-space: nowrap; float: left; position: relative;
+        z-index: 999; background-color: white; height: 35px; font-size: 13px; font-weight: bold;
+        font-family: Arial,Helvetica,sans-serif; display: none;">
+        <span>Please contact Credit Sales desk for more details</span></div>
+    <!-- End first show Message -->
+
+<div id="rows" style="display:none;">
+<!--[CDATA[
+<Row>
+				<Cell ss:StyleID="title">
+					<Data ss:Type="String">Description</Data>
+				</Cell>
+				<Cell ss:StyleID="title">
+					<Data ss:Type="String">CUSIP</Data>
+				</Cell>
+				<Cell ss:StyleID="title">
+					<Data ss:Type="String">ISIN</Data>
+				</Cell>
+			</Row>
+-->
+</div>
+
+    <!-- Scripts -->
+    <script type="text/javascript" src="../../js/VantageSearch/VantageSearch_min.js"></script>
+    <script type="text/javascript" src="../../js/mock.js"></script>
+    <script type="text/javascript" src="../../js/VantageSearch/VantageSearch.js"></script>
+    <script type="text/javascript" src="../../js/VantageSearch/VantageSearch_unit.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+           // $.getScript('http://mockjs.com/dist/mock.js').done(function () { $.getScript('js/VantageSearch/VantageSearch_unit.js'); CV_CREDIT.VantageSearch.init(); });
+          CV_CREDIT.VantageSearch.init();
+        });
+    </script>
+</body>
+</html>
