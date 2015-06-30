@@ -56,6 +56,7 @@ for (var i in config.routes) {
 }
 
 var mongoose = require('mongoose');
+
 mongoose.connect(config.db);
 application.on('close',
 function(errno) {
