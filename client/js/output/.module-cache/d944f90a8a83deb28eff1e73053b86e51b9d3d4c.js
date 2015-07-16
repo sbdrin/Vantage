@@ -129,222 +129,7 @@
         }
     };
     
-    var LayoutBase = React.createClass({
-        getInitialState: function() {
-            return {
-                list: Store.models()
-            };
-        },
-        _onChange: function(model) {
-            this.setState({
-                list: Store.models()
-            });
-        },
-        componentDidMount: function() {
-            var that = this;
-            Store.addListener(this._onChange);
-            var $dom = $(this.getDOMNode());
-            $dom.on("click", function(event) {
-                event.stopPropagation();
-                $dom.toggleClass("open");
-            });
-
-            $dom.on("click", "a", function(event) {
-                event.stopPropagation();
-                $dom.removeClass("open");
-                var $this = $(event.currentTarget);
-                var action = $this.data("action");
-                if (action) {
-                    switch (action) {
-                        default: Event.fire(action);
-                        break;
-                    }
-                    return;
-                }
-                $.each(that.state.list, function() {
-                    if (this.LayoutName == $this.text()) {
-                        action.currentLayout = this;
-                        return false;
-                    }
-                });
-                Event.fire("selected",action.currentLayout);
-            });
-        },
-        componentWillUnmount: function() {
-             Store.removeListener(this._onChange);
-        },
-        render: function() {
-            var that = this;
-            return <div style={{position: "relative"}}>
-                <div style={{cursor: "pointer"}}>
-                    <span className={this.props.iconCalss}></span>
-                </div>
-                <ul  className="dropdown-menu pull-left">
-                    {
-                        that.state.list.map(function(item){
-                            return <li><a>
-                                <span data-check className="check" style={{visibility:action.currentLayout.LayoutName == item.LayoutName ? "visible" : "hidden"}}>
-                                </span>
-                                <span>{item.LayoutName}</span>
-                            </a></li>;
-                        })
-                    }
-                    <li className="divider"></li>
-                   
-                     {
-                        this.props.actions.map(function(item){
-                            return <li><a data-action={item.action}>
-                                <span className={item.className + ' icon'}></span>{item.text}
-                            </a></li>;
-                        })
-                    }
-                </ul>
-            </div>
-        }
-    });
-
-    var PopContainer = React.createClass({
-        componentDidMount: function() {
-            $(this.getDOMNode()).jqxWindow({
-                autoOpen: false,
-                isModal: true,
-                height: this.props.height || 'auto',
-                width: 300
-            });
-        },
-        render: function() {
-            return <div id={this.props.popId}>
-                   <div className="popWindowheader">
-                       <span>{this.props.popTitle}</span>
-                   </div>
-                   <div id= {this.props.popId+ "_content"} style={{overflow: 'hidden'}} className="popWindowContent">
-                   </div>
-               </div>;
-        }
-    });
-    var AddPopContent = React.createClass({
-        componentDidMount: function() {
-            AddPopContent.ele = $(this.getDOMNode());
-            AddPopContent.container = AddPopContent.ele.parents('div.jqx-window');
-            setTimeout(function() {
-                $("#layout_name", AddPopContent.ele).focus();
-            })
-        },
-        addLayout: function() {
-            var layoutName = $.trim($("#layout_name", AddPopContent.ele).val());
-            if (layoutName == "") {
-                $("#ErrorInput").html("Layout Name can not be Empty.").show();
-                return;
-            }
-            var existsLayout = false;
-            $.each(Store.models(), function(i, item) {
-                if (layoutName.toLowerCase() == item.LayoutName.toLowerCase()) {
-                    existsLayout = true;
-                }
-            });
-
-            if (existsLayout && !confirm("The layout '" + layoutName + "' already exists.\nDo you want to replace?")) {
-                return;
-            }
-            var isDefault = $("#layoutDefaultCheck", AddPopContent.ele)[0].checked == true ? 1 : 0;
-            Event.fire('saving',layoutName, isDefault, existsLayout);
-            AddPopContent.container.jqxWindow('close');
-        },
-        componentWillReceiveProps: function(nextProps) {
-            setTimeout(function() {
-                $("#layout_name", AddPopContent.ele).val("").focus();
-            })
-        },
-        render: function() {
-            return <div>
-                <div style={{fontWeight : 'bold', height: 18, padding: 2, fontFamily: 'Arial', fontSize: 12,width: '100%'}}>
-                    You can save your action.</div>
-                <table cellpadding="0" cellspacing="0" style={{height: 12, padding: 2, fontFamily: 'Arial',fontSize: 11, width: '100%'}}>
-                    <tbody>
-                        <tr>
-                            <td style={{width: 35, fontWeight: 'bold'}}>
-                                Layout:
-                            </td>
-                            <td>
-                                <input id="layout_name" style={{height: 15, border: '1px solid'}} />
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div style={{height: 12, padding: 2, fontFamily: 'Arial', fontSize: 11, width: '100%',color: 'Red'}}>
-                    <span id="ErrorInput" style={{fontWeight: 'bold', display: 'none'}}></span>
-                </div>
-                <div style={{height: 18, padding: 2, textAlign: 'center', fontFamily: 'Arial', fontSize: 13, width: '100%'}}>
-                    <input type="button" id="btnSaveLayout" onClick={this.addLayout} value="Save" className="popWindowButton" />
-                    <input type="checkbox" id="layoutDefaultCheck" />
-                    <span style={{fontSize: 13}}>Set as Default</span>
-                </div>
-            </div>
-
-        }
-    });
-    var RemovePopContent = React.createClass({
-        getInitialState: function() {
-            return {
-                list: Store.models()
-            };
-        },
-        _onChange: function() {
-            this.setState({
-                list: Store.models()
-            });
-        },
-        componentDidMount: function() {
-            RemovePopContent.container = $(this.getDOMNode()).parents('div.jqx-window');
-            Store.addListener(this._onChange);
-        },
-        componentWillUnmount: function() {
-             Store.removeListener(this._onChange);
-        },
-        deleteLayout: function() {
-            var checkedLayoutList = $("#tbl_layoutList").find("input[type='checkbox']:checked");
-            if (checkedLayoutList.length == 0) {
-                return;
-            }
-            var layoutNames = [];
-            checkedLayoutList.each(function() {
-                layoutNames.push($.trim(this.value));
-            });
-            Event.fire('deleting',layoutNames);
-            RemovePopContent.container.jqxWindow('close');
-
-        },
-        closePop: function() {
-            RemovePopContent.container.jqxWindow('close');
-        },
-        render: function() {
-            return <div>
-                 <div style={{padding: 2, fontFamily: 'Arial', fontSize: '12px', width: '100%'}}>
-                    <table id="tbl_layoutList" border="0">
-                            <tbody>
-                            {
-                                this.state.list.map(function(item,index){
-                                    var id = 'chk_filter_' + index;
-                                    return <tr><td>
-                                        <input id={id} value={item.LayoutName} type='checkbox' />
-                                        <label htmlFor={id}>{ item.LayoutName }</label>
-                                    </td></tr>
-                                })
-                            }
-                        </tbody>
-                    </table>
-                </div>
-                <div style={{height: 20,padding: 2,fontFamily: 'Arial', textAlign: 'center',fontSize: '11px', width: '100%'}}>
-                    <span>
-                        <button className="popWindowButton" onClick={this.deleteLayout}>Delete</button>
-                        <span>&nbsp;&nbsp;</span>
-                        <button className="popWindowButton" onClick={this.closePop}>Cancel</button>
-                    </span>
-                </div>
-            </div>
-
-        }
-    });
+   
 
     var action = {
         module: '',
@@ -357,29 +142,27 @@
         actions: [{action: 'addOrRemoveColumn',className: 'iconcolumn',text: 'Add\Remove Columns'}, {action: 'save',className: 'iconsave',text: 'Save Layout'}, {action: 'delete',className: 'icondelete',text: 'Delete Layout'}, {action: 'reset', className: 'iconreset',text: 'Reset Layout'}],
         initDom: function(dom) {
             React.render(
-                <LayoutBase actions={action.actions} iconCalss ={action.iconCalss}/>,
+                React.createElement(LayoutBase, {actions: action.actions, iconCalss: action.iconCalss}),
                 dom
             );
             React.render(
-                <div>
-                   <PopContainer popId='removeLayoutPop'  popTitle='Delete Layouts'/>
-                   <PopContainer popId='addLaypoutPop'  popTitle='Save Layouts' height='125'/>
-                   <PopContainer popId='msgPop'  popTitle='Message' height='80'/>
-                </div>,
+                React.createElement("div", null, 
+                   React.createElement(PopContainer, {popId: "removeLayoutPop", popTitle: "Delete Layouts"}), 
+                   React.createElement(PopContainer, {popId: "addLaypoutPop", popTitle: "Save Layouts", height: "125"}), 
+                   React.createElement(PopContainer, {popId: "msgPop", popTitle: "Message", height: "80"})
+                ),
                 $('<div>').appendTo(document.body)[0]
             );
             React.render(
-                <AddPopContent />,
+                React.createElement(AddPopContent, null),
                 document.getElementById('addLaypoutPop' + '_content')
             );
             React.render(
-                 <RemovePopContent />,
+                 React.createElement(RemovePopContent, null),
                  document.getElementById('removeLayoutPop' + '_content')
             );
         },
         initEvent: function(dom,actions) {
-            
-            
             $("body").on("click", function(event) {
                 $(dom).find("div:first").removeClass("open");
             });

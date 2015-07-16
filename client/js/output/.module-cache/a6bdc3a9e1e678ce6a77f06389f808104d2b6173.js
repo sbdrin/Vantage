@@ -87,66 +87,31 @@
 ;(function($, undefined) {
     var Event = {
         add: function(action, callback) {
-            (Event[action] || (Event[action] = $.Callbacks("once,memory"))) && (Event[action].add(callback));
-            return Event;
-        },
-        remove: function(action, callback) {
-            (Event[action] || (Event[action] = $.Callbacks("once,memory"))) && (Event[action].remove(callback));
+            Event[action] || (Event[action] = $.Callbacks("once,memory")) && (Event[action].add(callback));
             return Event;
         },
         fire: function(action) {
             Event[action] && Event[action].fire.apply(null,Array.prototype.slice.call(arguments,1));
         }
     };
-    var Store ={
-        _models:[],
-        models:function(models){
-            if(models){
-                Store._models = models;
-                Event.fire("ModelsChange",Store._models);
-            }
-            return Store._models;
-        },
-        addListener: function(callback){
-            Event.add("ModelsChange",callback);
-        },
-        removeListener: function(callback){
-            Event.remove("ModelsChange",callback);
-        },
-        remove: function(names) {
-            var newModels = [];
-            $.each(Store._models, function(i, val) {
-                if (names.indexOf(val.LayoutName) < 0) {
-                    newModels.push(val);
-                }
-            });
-            Store._models = newModels;
-            Event.fire("ModelsChange",Store._models);
-        },
-        add:function(model){
-             Store._models.push(model);
-             Event.fire("ModelsChange",Store._models);
-        }
-    };
-    
-    var LayoutBase = React.createClass({
+
+    var LayoutBase = React.createClass({displayName: "LayoutBase",
         getInitialState: function() {
             return {
-                list: Store.models()
+                list: action.source
             };
-        },
-        _onChange: function(model) {
-            this.setState({
-                list: Store.models()
-            });
         },
         componentDidMount: function() {
             var that = this;
-            Store.addListener(this._onChange);
             var $dom = $(this.getDOMNode());
             $dom.on("click", function(event) {
                 event.stopPropagation();
                 $dom.toggleClass("open");
+                if ($dom.hasClass('open')) {
+                    that.setState({
+                        list: action.source
+                    });
+                }
             });
 
             $dom.on("click", "a", function(event) {
@@ -170,40 +135,37 @@
                 Event.fire("selected",action.currentLayout);
             });
         },
-        componentWillUnmount: function() {
-             Store.removeListener(this._onChange);
-        },
         render: function() {
             var that = this;
-            return <div style={{position: "relative"}}>
-                <div style={{cursor: "pointer"}}>
-                    <span className={this.props.iconCalss}></span>
-                </div>
-                <ul  className="dropdown-menu pull-left">
-                    {
+            return React.createElement("div", {style: {position: "relative"}}, 
+                React.createElement("div", {style: {cursor: "pointer"}}, 
+                    React.createElement("span", {className: this.props.iconCalss})
+                ), 
+                React.createElement("ul", {className: "dropdown-menu pull-left"}, 
+                    
                         that.state.list.map(function(item){
-                            return <li><a>
-                                <span data-check className="check" style={{visibility:action.currentLayout.LayoutName == item.LayoutName ? "visible" : "hidden"}}>
-                                </span>
-                                <span>{item.LayoutName}</span>
-                            </a></li>;
-                        })
-                    }
-                    <li className="divider"></li>
+                            return React.createElement("li", null, React.createElement("a", null, 
+                                React.createElement("span", {"data-check": true, className: "check", style: {visibility:action.currentaction.LayoutName == item.LayoutName ? "visible" : "hidden"}}
+                                ), 
+                                React.createElement("span", null, item.LayoutName)
+                            ));
+                        }), 
+                    
+                    React.createElement("li", {className: "divider"}), 
                    
-                     {
+                     
                         this.props.actions.map(function(item){
-                            return <li><a data-action={item.action}>
-                                <span className={item.className + ' icon'}></span>{item.text}
-                            </a></li>;
+                            return React.createElement("li", null, React.createElement("a", {"data-action": item.action}, 
+                                React.createElement("span", {className: item.className + ' icon'}), item.text
+                            ));
                         })
-                    }
-                </ul>
-            </div>
+                    
+                )
+            )
         }
     });
 
-    var PopContainer = React.createClass({
+    var PopContainer = React.createClass({displayName: "PopContainer",
         componentDidMount: function() {
             $(this.getDOMNode()).jqxWindow({
                 autoOpen: false,
@@ -213,16 +175,16 @@
             });
         },
         render: function() {
-            return <div id={this.props.popId}>
-                   <div className="popWindowheader">
-                       <span>{this.props.popTitle}</span>
-                   </div>
-                   <div id= {this.props.popId+ "_content"} style={{overflow: 'hidden'}} className="popWindowContent">
-                   </div>
-               </div>;
+            return React.createElement("div", {id: this.props.popId}, 
+                   React.createElement("div", {className: "popWindowheader"}, 
+                       React.createElement("span", null, this.props.popTitle)
+                   ), 
+                   React.createElement("div", {id: this.props.popId+ "_content", style: {overflow: 'hidden'}, className: "popWindowContent"}
+                   )
+               );
         }
     });
-    var AddPopContent = React.createClass({
+    var AddPopContent = React.createClass({displayName: "AddPopContent",
         componentDidMount: function() {
             AddPopContent.ele = $(this.getDOMNode());
             AddPopContent.container = AddPopContent.ele.parents('div.jqx-window');
@@ -237,7 +199,7 @@
                 return;
             }
             var existsLayout = false;
-            $.each(Store.models(), function(i, item) {
+            $.each(this.props.source, function(i, item) {
                 if (layoutName.toLowerCase() == item.LayoutName.toLowerCase()) {
                     existsLayout = true;
                 }
@@ -256,50 +218,37 @@
             })
         },
         render: function() {
-            return <div>
-                <div style={{fontWeight : 'bold', height: 18, padding: 2, fontFamily: 'Arial', fontSize: 12,width: '100%'}}>
-                    You can save your action.</div>
-                <table cellpadding="0" cellspacing="0" style={{height: 12, padding: 2, fontFamily: 'Arial',fontSize: 11, width: '100%'}}>
-                    <tbody>
-                        <tr>
-                            <td style={{width: 35, fontWeight: 'bold'}}>
-                                Layout:
-                            </td>
-                            <td>
-                                <input id="layout_name" style={{height: 15, border: '1px solid'}} />
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div style={{height: 12, padding: 2, fontFamily: 'Arial', fontSize: 11, width: '100%',color: 'Red'}}>
-                    <span id="ErrorInput" style={{fontWeight: 'bold', display: 'none'}}></span>
-                </div>
-                <div style={{height: 18, padding: 2, textAlign: 'center', fontFamily: 'Arial', fontSize: 13, width: '100%'}}>
-                    <input type="button" id="btnSaveLayout" onClick={this.addLayout} value="Save" className="popWindowButton" />
-                    <input type="checkbox" id="layoutDefaultCheck" />
-                    <span style={{fontSize: 13}}>Set as Default</span>
-                </div>
-            </div>
+            return React.createElement("div", null, 
+                React.createElement("div", {style: {fontWeight : 'bold', height: 18, padding: 2, fontFamily: 'Arial', fontSize: 12,width: '100%'}}, 
+                    "You can save your action."), 
+                React.createElement("table", {cellpadding: "0", cellspacing: "0", style: {height: 12, padding: 2, fontFamily: 'Arial',fontSize: 11, width: '100%'}}, 
+                    React.createElement("tbody", null, 
+                        React.createElement("tr", null, 
+                            React.createElement("td", {style: {width: 35, fontWeight: 'bold'}}, 
+                                "Layout:"
+                            ), 
+                            React.createElement("td", null, 
+                                React.createElement("input", {id: "layout_name", style: {height: 15, border: '1px solid'}})
+                            )
+                        )
+                    )
+                ), 
+                React.createElement("div", {style: {height: 12, padding: 2, fontFamily: 'Arial', fontSize: 11, width: '100%',color: 'Red'}}, 
+                    React.createElement("span", {id: "ErrorInput", style: {fontWeight: 'bold', display: 'none'}})
+                ), 
+                React.createElement("div", {style: {height: 18, padding: 2, textAlign: 'center', fontFamily: 'Arial', fontSize: 13, width: '100%'}}, 
+                    React.createElement("input", {type: "button", id: "btnSaveLayout", onClick: this.addLayout, value: "Save", className: "popWindowButton"}), 
+                    React.createElement("input", {type: "checkbox", id: "layoutDefaultCheck"}), 
+                    React.createElement("span", {style: {fontSize: 13}}, "Set as Default")
+                )
+            )
 
         }
     });
-    var RemovePopContent = React.createClass({
-        getInitialState: function() {
-            return {
-                list: Store.models()
-            };
-        },
-        _onChange: function() {
-            this.setState({
-                list: Store.models()
-            });
-        },
+    var RemovePopContent = React.createClass({displayName: "RemovePopContent",
         componentDidMount: function() {
-            RemovePopContent.container = $(this.getDOMNode()).parents('div.jqx-window');
-            Store.addListener(this._onChange);
-        },
-        componentWillUnmount: function() {
-             Store.removeListener(this._onChange);
+            RemovePopContent.ele = $(this.getDOMNode());
+            RemovePopContent.container = RemovePopContent.ele.parents('div.jqx-window');
         },
         deleteLayout: function() {
             var checkedLayoutList = $("#tbl_layoutList").find("input[type='checkbox']:checked");
@@ -318,68 +267,56 @@
             RemovePopContent.container.jqxWindow('close');
         },
         render: function() {
-            return <div>
-                 <div style={{padding: 2, fontFamily: 'Arial', fontSize: '12px', width: '100%'}}>
-                    <table id="tbl_layoutList" border="0">
-                            <tbody>
-                            {
-                                this.state.list.map(function(item,index){
+            return React.createElement("div", null, 
+                 React.createElement("div", {style: {padding: 2, fontFamily: 'Arial', fontSize: '12px', width: '100%'}}, 
+                    React.createElement("table", {id: "tbl_layoutList", border: "0"}, 
+                            React.createElement("tbody", null, 
+                            
+                                this.props.list.map(function(item,index){
                                     var id = 'chk_filter_' + index;
-                                    return <tr><td>
-                                        <input id={id} value={item.LayoutName} type='checkbox' />
-                                        <label htmlFor={id}>{ item.LayoutName }</label>
-                                    </td></tr>
+                                    return React.createElement("tr", null, React.createElement("td", null, 
+                                        React.createElement("input", {id: id, value: item.LayoutName, type: "checkbox"}), 
+                                        React.createElement("label", {htmlFor: id},  item.LayoutName)
+                                    ))
                                 })
-                            }
-                        </tbody>
-                    </table>
-                </div>
-                <div style={{height: 20,padding: 2,fontFamily: 'Arial', textAlign: 'center',fontSize: '11px', width: '100%'}}>
-                    <span>
-                        <button className="popWindowButton" onClick={this.deleteLayout}>Delete</button>
-                        <span>&nbsp;&nbsp;</span>
-                        <button className="popWindowButton" onClick={this.closePop}>Cancel</button>
-                    </span>
-                </div>
-            </div>
+                            
+                        )
+                    )
+                ), 
+                React.createElement("div", {style: {height: 20,padding: 2,fontFamily: 'Arial', textAlign: 'center',fontSize: '11px', width: '100%'}}, 
+                    React.createElement("span", null, 
+                        React.createElement("button", {className: "popWindowButton", onClick: this.deleteLayout}, "Delete"), 
+                        React.createElement("span", null, "  "), 
+                        React.createElement("button", {className: "popWindowButton", onClick: this.closePop}, "Cancel")
+                    )
+                )
+            )
 
         }
     });
 
     var action = {
-        module: '',
-        maskId: '',
         source: [],
-        encode:true,
-        currentLayout: {},
+        maskId: '',
         iconCalss: 'layout_icon',
         urls: {save: '/Common/SaveLayout',remove: '/Common/DeleteLayout'},
         actions: [{action: 'addOrRemoveColumn',className: 'iconcolumn',text: 'Add\Remove Columns'}, {action: 'save',className: 'iconsave',text: 'Save Layout'}, {action: 'delete',className: 'icondelete',text: 'Delete Layout'}, {action: 'reset', className: 'iconreset',text: 'Reset Layout'}],
+        currentLayout: {},
         initDom: function(dom) {
             React.render(
-                <LayoutBase actions={action.actions} iconCalss ={action.iconCalss}/>,
+                React.createElement(LayoutBase, {actions: action.actions, iconCalss: action.iconCalss}),
                 dom
             );
             React.render(
-                <div>
-                   <PopContainer popId='removeLayoutPop'  popTitle='Delete Layouts'/>
-                   <PopContainer popId='addLaypoutPop'  popTitle='Save Layouts' height='125'/>
-                   <PopContainer popId='msgPop'  popTitle='Message' height='80'/>
-                </div>,
+                React.createElement("div", null, 
+               React.createElement(PopContainer, {popId: "removeLayoutPop", popTitle: "Delete Layouts"}), 
+               React.createElement(PopContainer, {popId: "addLaypoutPop", popTitle: "Save Layouts", height: "125"}), 
+               React.createElement(PopContainer, {popId: "msgPop", popTitle: "Message", height: "80"})
+            ),
                 $('<div>').appendTo(document.body)[0]
-            );
-            React.render(
-                <AddPopContent />,
-                document.getElementById('addLaypoutPop' + '_content')
-            );
-            React.render(
-                 <RemovePopContent />,
-                 document.getElementById('removeLayoutPop' + '_content')
             );
         },
         initEvent: function(dom,actions) {
-            
-            
             $("body").on("click", function(event) {
                 $(dom).find("div:first").removeClass("open");
             });
@@ -393,15 +330,20 @@
             }).add("addOrRemoveColumn", function() {
                 action.onColumn();
             }).add("save", function() {
-                 setTimeout(function() {
-                     $("#layout_name").val("").focus();
-                 });
+                React.render(
+                    React.createElement(AddPopContent, {source: action.source}),
+                    document.getElementById('addLaypoutPop' + '_content')
+                );
                 $("#addLaypoutPop").jqxWindow('open');
             }).add("saving", function(layoutName, isDefault, existsLayout) {
                 action.saveLayout(layoutName, isDefault, existsLayout);
             }).add("delete", function() {
+                React.render(
+                    React.createElement(RemovePopContent, {list: action.source}),
+                    document.getElementById('removeLayoutPop' + '_content')
+                );
                 $("#removeLayoutPop").jqxWindow({
-                    height: 80 + Store.models().length * 21
+                    height: 80 + action.source.length * 21
                 }).jqxWindow('open');
             }).add("deleting", function(layoutNames) {
                  action.deleteLayout(layoutNames);
@@ -410,7 +352,6 @@
             });
         },
         init: function() {
-            Store.models(action.source);
             $.each(action.actions, function(i, item) {
                 if (typeof this.action == 'function') {
                     this.callback = this.action;
@@ -453,7 +394,13 @@
                 success: function(response) {
                     var isDeleted = response.indexOf("true") < 0 ? false : true;
                     if (isDeleted) {
-                        Store.remove(layoutNames);
+                        var newLayout = [];
+                        $.each(action.source, function(i, val) {
+                            if (layoutNames.indexOf(val.LayoutName) < 0) {
+                                newaction.push(val);
+                            }
+                        });
+                        action.source = newLayout;
                     }
                     action.onDeleted && action.onDeleted(source, isDeleted);
                     var message = "Delete layout ";
@@ -491,9 +438,9 @@
                 },
                 success: function(response) {
                     action.currentLayout = source;
-                    action.currentLayout.LayoutName = source.layoutName;
-                    action.currentLayout.LayoutCriteria = source.layoutCriteria;
-                    existsLayout || Store.add(action.currentLayout);
+                    action.currentaction.LayoutName = source.layoutName;
+                    action.currentaction.LayoutCriteria = source.layoutCriteria;
+                    existsLayout || action.source.push(action.currentLayout);
                     var isSaved = response.indexOf("true") < 0 ? false : true;
                     action.onSaved && action.onSaved(source, isSaved);
                     var message = "Save layout ";
