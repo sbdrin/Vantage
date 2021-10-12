@@ -1,4 +1,4 @@
-/*! mockjs 02-06-2015 22:03:43 */
+/*! mockjs  02-06-2015 22:03:43 */
 /*! src/mock-prefix.js */
 /*!
     Mock - 模拟请求 & 模拟数据
@@ -7,7 +7,7 @@
 */
 (function(undefined) {
     var Mock = {
-        version: "0.1.9",
+        version: "0.1.9", 
         _mocked: {}
     };
     /*! src/util.js */
