@@ -1,16 +1,16 @@
-/*! mockjs 02-06-2015 22:03:43 */
+/*! mockjs  02-06-2015 22:03:43 */
 /*! src/mock-prefix.js */
 /*!
     Mock - 模拟请求 & 模拟数据
     https://github.com/nuysoft/Mock
-    墨智 nuysoft@gmail.com
+    nuysoft@gmail.com
 */
 (function(undefined) {
     var Mock = {
-        version: "0.1.9",
+        version: "0.1.9", 
         _mocked: {}
     };
-    /*! src/util.js */
+    /*!    src/util.js */
     var Util = function() {
         var Util = {};
         Util.extend = function extend() {
